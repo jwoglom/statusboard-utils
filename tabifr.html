@@ -112,6 +112,10 @@
                 document.querySelector("#tabs").style.height = url;
             } else if (name == "opacity") {
                 document.querySelector("#tabs").style.opacity = url;
+            } else if (name == "background") {
+                var e = document.createElement('style');
+                e.innerHTML = '#iframes > iframe { background: ' + url + ' }';
+                document.body.appendChild(e);
             } else {
                 if (first == -1) first = i;
                 addIframe(name, url, i);
