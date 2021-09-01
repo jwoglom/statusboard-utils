@@ -1,0 +1,126 @@
+<html>
+    <body>
+    
+    <style>
+        * {
+            overflow: hidden;
+            border: 0;
+        }
+
+        iframe {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: none;
+        }
+
+        #tabs {
+            position: absolute;
+            bottom: 0;
+            height: 50px;
+            left: 0;
+            width: 100vw;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            z-index: 100;
+            opacity: 0.1;
+        }
+
+        #tabs.hidden {
+            opacity: 0;
+        }
+
+        #tabs > .tab {
+            flex-grow: 1;
+            cursor: pointer;
+            font-size: 25px;
+
+            border-right: 4px solid black;
+        }
+
+        #tabs :last-child {
+            border-right: 0;
+        }
+
+        .tab.selected {
+            font-weight: bold;
+        }
+    </style>
+    <div id="iframes">
+
+    </div>
+
+    <div id="tabs">
+
+    </div>
+    
+    <script>
+    function addIframe(name, url, id) {
+        var el = document.createElement('iframe');
+        el.src = url;
+        el.id = 'iframe-' + id;
+        el.setAttribute('allowtransparency', 'true');
+        el.setAttribute('scrolling', 'yes');
+        document.querySelector('#iframes').appendChild(el);
+
+        var t = document.createElement('button');
+        t.classList.add('tab');
+        t.classList.add('tab-'+id);
+        t.innerText = name;
+        t.setAttribute('onclick', 'clickTab("' + id + '")');
+        document.querySelector('#tabs').appendChild(t);
+    }
+    function clickTab(id) {
+        document.querySelectorAll('iframe').forEach(function(el) {
+            el.style.display = 'none';
+        });
+        document.querySelector('#iframe-'+id).style.display = 'block';
+
+        document.querySelectorAll('.tab').forEach(function(el) {
+            el.classList.remove('selected');
+        });
+        document.querySelector('.tab.tab-'+id).classList.add('selected');
+    }
+    function captureMovement() {
+        console.debug('captureMovement');
+        document.querySelector("#tabs").classList.remove('hidden');
+        if (window.movetimeout) {
+            clearInterval(window.movetimeout);
+        }
+        window.movetimeout = setTimeout(function() {
+            document.querySelector("#tabs").classList.add('hidden');
+        }, 5000);
+    }
+    window.onload = function() {
+        var params = Array.from(new URL(location.href).searchParams);
+        var first = -1;
+        for (var i=0; i<params.length; i++) {
+            var p = params[i];
+            var name = p[0];
+            var url = p[1];
+
+            if (name == "zoom") {
+                document.body.style.zoom = url;
+            } else if (name == "hide") {
+                document.querySelector("#tabs").classList.add('hidden');
+                window.movetimeout = null;
+                document.body.onmousemove = captureMovement;
+                document.body.ontouchstart = captureMovement;
+            } else if (name == "height") {
+                document.querySelector("#tabs").style.height = url;
+            } else if (name == "opacity") {
+                document.querySelector("#tabs").style.opacity = url;
+            } else {
+                if (first == -1) first = i;
+                addIframe(name, url, i);
+            }
+        }
+
+        clickTab(first);
+    }
+    </script>
+    </body>
+    </html>
+    

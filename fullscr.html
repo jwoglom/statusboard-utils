@@ -1,0 +1,48 @@
+<html>
+<body>
+
+<style>
+    * {
+        overflow: hidden;
+        border: 0;
+    }
+</style>
+
+<iframe src="about:blank" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background: none" allowtransparency=true scrolling=no>
+</iframe>
+
+<script>
+function requestFullscreen(el) {
+    if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+    if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+    if (el.msRequestFullscreen) el.msRequestFullscreen();
+    if (el.requestFullscreen) el.requestFullscreen();
+}
+window.onload = function() {
+    var q = location.search.substr(1);
+    if (q.substr(0, 5) == 'zoom=') {
+        var n = q.substr(5);
+        var z = parseFloat(n.substr(0, n.indexOf('&')));
+        if (z < 1) {
+            document.querySelector("iframe").style.transform = 'scale('+z+')';
+            document.body.style.transform = 'scale('+(1/parseFloat(z))+')';
+        } else {
+            document.body.style.zoom = z;
+        }
+        q = n.substr(n.indexOf('&')+1);
+    }
+    if (q.substr(0, 3) == 'bg=') {
+        var b = q.substr(3); b = b.substr(0, b.indexOf('&'));
+        document.body.style.background = b;
+        q = q.substr(q.indexOf('&')+1);
+    }
+    document.querySelector("iframe").src = q;
+    setInterval(function() { window.location.reload(); }, 60 * 60 * 1000);
+    requestFullscreen(document.documentElement);
+    document.documentElement.onclick = function() {
+        requestFullscreen(document.documentElement);
+    }
+}
+</script>
+</body>
+</html>
