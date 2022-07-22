@@ -70,6 +70,7 @@
         t.classList.add('tab-'+id);
         t.innerText = name;
         t.setAttribute('onclick', 'clickTab("' + id + '")');
+        t.setAttribute('ondblclick', 'dblClickTab("' + id + '")');
         document.querySelector('#tabs').appendChild(t);
     }
     function clickTab(id) {
@@ -82,6 +83,12 @@
             el.classList.remove('selected');
         });
         document.querySelector('.tab.tab-'+id).classList.add('selected');
+    }
+    function dblClickTab(id) {
+        var ifr = document.querySelector('#iframe-'+id);
+        var old = ifr.src;
+        ifr.src = 'about:blank';
+        setTimeout(function() { ifr.src = old; }, 10);
     }
     function captureMovement() {
         console.debug('captureMovement');
