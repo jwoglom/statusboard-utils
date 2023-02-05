@@ -24,7 +24,7 @@
             width: 100vw;
             background: rgba(255, 255, 255, 0.3);
             display: flex;
-            z-index: 100;
+            z-index: 10000;
             opacity: 0.1;
         }
 
@@ -47,6 +47,10 @@
         .tab.selected {
             font-weight: bold;
         }
+        .tab:not(.selected) {
+            font-weight: lighter;
+            background: rgba(242, 242, 242, 0.3);
+        }
     </style>
     <div id="iframes">
 
@@ -57,12 +61,13 @@
     </div>
     
     <script>
+    var iframeScrolling = 'yes';
     function addIframe(name, url, id) {
         var el = document.createElement('iframe');
         el.src = url;
         el.id = 'iframe-' + id;
         el.setAttribute('allowtransparency', 'true');
-        el.setAttribute('scrolling', 'yes');
+        el.setAttribute('scrolling', iframeScrolling);
         document.querySelector('#iframes').appendChild(el);
 
         var t = document.createElement('button');
@@ -123,6 +128,8 @@
                 var e = document.createElement('style');
                 e.innerHTML = '#iframes > iframe { background: ' + url + ' }';
                 document.body.appendChild(e);
+            } else if (name == "scrolling") {
+                iframeScrolling = url;
             } else {
                 if (first == -1) first = i;
                 addIframe(name, url, i);
