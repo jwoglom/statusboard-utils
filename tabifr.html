@@ -62,7 +62,9 @@
     
     <script>
     var iframeScrolling = 'yes';
+    var tabNames = {};
     function addIframe(name, url, id) {
+        tabNames[name] = id;
         var el = document.createElement('iframe');
         el.src = url;
         el.id = 'iframe-' + id;
@@ -138,6 +140,31 @@
 
         clickTab(first);
     }
+
+    window.addEventListener('message', function(event) {
+        console.log('onMessage', event);
+        if (!event.origin.endsWith('.wogloms.com')) return;
+        if (event.data.changeTab) {
+            var id = tabNames[event.data.changeTab];
+            if (id) {
+                clickTab(id);
+            } else {
+                clickTab(event.data.changeTab);
+            }
+        }
+        if (event.data.reloadTab) {
+            var id = tabNames[event.data.reloadTab];
+            if (id) {
+                dblClickTab(id);
+            } else {
+                dblClickTab(event.data.reloadTab);
+            }
+        }
+        if (event.data.reloadPage) {
+            location.reload();
+        }
+    });
+
     </script>
     </body>
     </html>
