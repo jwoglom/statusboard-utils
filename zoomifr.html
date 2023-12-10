@@ -1,0 +1,27 @@
+<html>
+<body>
+
+<style>
+    * {
+        overflow: hidden;
+        border: 0;
+    }
+</style>
+
+<iframe src="about:blank" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background: none" allowtransparency=true scrolling=yes>
+</iframe>
+
+<script>
+window.onload = function() {
+    var url = location.search.substr(location.search.indexOf(';')+1);
+    var zoom = location.search.split(';')[0].substr(1);
+    document.querySelector("iframe").src = url;
+    document.querySelector("iframe").style.transform = 'scale('+zoom+')';
+    document.querySelector("iframe").style.transformOrigin = '0 0';
+    document.querySelector("iframe").style.width=(100/parseFloat(zoom))+'vw';
+    document.querySelector("iframe").style.height=(100/parseFloat(zoom))+'vh';
+    setInterval(function() { window.location.reload(); }, 60 * 60 * 1000);
+}
+</script>
+</body>
+</html>
