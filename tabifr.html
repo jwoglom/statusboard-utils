@@ -68,6 +68,7 @@
         var el = document.createElement('iframe');
         el.src = url;
         el.id = 'iframe-' + id;
+        el.setAttribute('data-name', name);
         el.setAttribute('allowtransparency', 'true');
         el.setAttribute('scrolling', iframeScrolling);
         document.querySelector('#iframes').appendChild(el);
@@ -90,6 +91,15 @@
             el.classList.remove('selected');
         });
         document.querySelector('.tab.tab-'+id).classList.add('selected');
+    }
+    function tabClickedName() {
+        var name = null;
+        document.querySelectorAll('iframe').forEach(function(el) {
+            if (el.style.display != 'none') {
+                name = el.getAttribute('data-name');
+            }
+        });
+        return name;
     }
     function dblClickTab(id) {
         var ifr = document.querySelector('#iframe-'+id);
@@ -133,16 +143,15 @@
             } else if (name == "scrolling") {
                 iframeScrolling = url;
             } else {
-                if (first == -1) first = i;
-                addIframe(name, url, i);
+                if (first == -1) first = i+1;
+                addIframe(name, url, i+1);
             }
         }
 
         clickTab(first);
     }
 
-    window.addEventListener('message', function(event) {
-        console.log('onMessage', event);
+    function handleMessage(event) {
         if (!event.origin.endsWith('.wogloms.com')) return;
         if (event.data.changeTab) {
             var id = tabNames[event.data.changeTab];
@@ -151,6 +160,21 @@
             } else {
                 clickTab(event.data.changeTab);
             }
+        }
+        if (event.data.alternateTabs) {
+            var ids = [];
+            for (var i=0; i<event.data.alternateTabs.length; i++) {
+                ids.push(tabNames[event.data.alternateTabs[i]] || event.data.alternateTabs[i]);
+            }
+            var cur = tabNames[tabClickedName()];
+            console.log('ids='+ids+', cur='+cur+', index='+ids.indexOf(cur));
+            if (ids.indexOf(cur) != -1) {
+                nextTab = (ids.indexOf(cur) + 1) % (ids.length);
+            } else {
+                nextTab = 0;
+            }
+            console.log('nextTab=' + ids[nextTab]);
+            clickTab(ids[nextTab]);
         }
         if (event.data.reloadTab) {
             var id = tabNames[event.data.reloadTab];
@@ -163,6 +187,11 @@
         if (event.data.reloadPage) {
             location.reload();
         }
+    }
+
+    window.addEventListener('message', function(event) {
+        console.log('onMessage', event);
+        handleMessage(event);
     });
 
     </script>
