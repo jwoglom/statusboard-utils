@@ -71,6 +71,7 @@
         el.setAttribute('data-name', name);
         el.setAttribute('allowtransparency', 'true');
         el.setAttribute('scrolling', iframeScrolling);
+        if (url.indexOf('homeassistant') != -1) el.setAttribute('name', 'ha-main-window');
         document.querySelector('#iframes').appendChild(el);
 
         var t = document.createElement('button');
