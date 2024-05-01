@@ -61,9 +61,12 @@
     </div>
     
     <script>
-    var iframeScrolling = 'yes';
     var tabNames = {};
-    function addIframe(name, url, id) {
+    function addIframe(name, url, id, params) {
+        var iframeScrolling = params['iframeScrolling'] || 'yes';
+        var iframeZoom = params['iframeZoom'] || null;
+        console.log("addIframe", {name: name, url: url, id: id, params: params});
+
         tabNames[name] = id;
         var el = document.createElement('iframe');
         el.src = url;
@@ -71,6 +74,9 @@
         el.setAttribute('data-name', name);
         el.setAttribute('allowtransparency', 'true');
         el.setAttribute('scrolling', iframeScrolling);
+        if (!!iframeZoom) {
+            el.style.zoom = iframeZoom;
+        }
         if (url.indexOf('homeassistant') != -1) el.setAttribute('name', 'ha-main-window');
         document.querySelector('#iframes').appendChild(el);
 
@@ -121,14 +127,27 @@
     }
     window.onload = function() {
         var params = Array.from(new URL(location.href).searchParams);
+        var iframeScrollings = {};
+        var iframeZooms = {};
         var first = -1;
         for (var i=0; i<params.length; i++) {
             var p = params[i];
             var name = p[0];
             var url = p[1];
 
+            var baseName = name;
+            var innerName = name;
+            if (name.indexOf("[") != -1 && name.indexOf("]") != -1) {
+                baseName = name.split("[")[0];
+                innerName = name.split("[")[1].split("]")[0];
+            }
+
+            console.log("name", name, "baseName", baseName, "innerName", innerName);
+
             if (name == "zoom") {
                 document.body.style.zoom = url;
+            } else if (baseName == "zoom") {
+                iframeZooms[baseName] = url;
             } else if (name == "hide") {
                 document.querySelector("#tabs").classList.add('hidden');
                 window.movetimeout = null;
@@ -143,10 +162,15 @@
                 e.innerHTML = '#iframes > iframe { background: ' + url + ' }';
                 document.body.appendChild(e);
             } else if (name == "scrolling") {
-                iframeScrolling = url;
+                defaultIframeScrolling = url;
+            } else if (baseName == "scrolling") {
+                iframeScrollings[innerName] = url;
             } else {
                 if (first == -1) first = i+1;
-                addIframe(name, url, i+1);
+                addIframe(name, url, i+1, {
+                    iframeScrolling: iframeScrollings[name],
+                    iframeZoom: iframeZooms[name]
+                });
             }
         }
 

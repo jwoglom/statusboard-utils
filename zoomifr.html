@@ -14,12 +14,21 @@
 <script>
 window.onload = function() {
     var url = location.search.substr(location.search.indexOf(';')+1);
-    var zoom = location.search.split(';')[0].substr(1);
+    var params = location.search.split(';', 2)[0].substr(1);
+    var scrolling = 'yes';
+    var parts = params.split(',');
+    var zoom = parts[0];
+    for (var i=1; i<parts.length; i++) {
+        if (parts[i].substring(0, 'scrolling='.length) == 'scrolling=') {
+            scrolling = parts[i].split('scrolling=')[1];
+        }
+    }
     document.querySelector("iframe").src = url;
     document.querySelector("iframe").style.transform = 'scale('+zoom+')';
     document.querySelector("iframe").style.transformOrigin = '0 0';
     document.querySelector("iframe").style.width=(100/parseFloat(zoom))+'vw';
     document.querySelector("iframe").style.height=(100/parseFloat(zoom))+'vh';
+    document.querySelector("iframe").setAttribute('scrolling', scrolling);
     setInterval(function() { window.location.reload(); }, 60 * 60 * 1000);
 }
 </script>
