@@ -1,0 +1,178 @@
+<html>
+    <body>
+    
+    <style>
+        * {
+            overflow: hidden;
+            border: 0;
+        }
+
+        iframe {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: none;
+        }
+
+        #tabs {
+            position: absolute;
+            bottom: 0;
+            height: 50px;
+            left: 0;
+            width: 100vw;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            z-index: 10000;
+            opacity: 0.1;
+        }
+
+        #tabs.hidden {
+            opacity: 0;
+        }
+
+        #tabs > .tab {
+            flex-grow: 1;
+            cursor: pointer;
+            font-size: 25px;
+
+            border-right: 4px solid black;
+        }
+
+        #tabs :last-child {
+            border-right: 0;
+        }
+
+        .tab.selected {
+            font-weight: bold;
+        }
+        .tab:not(.selected) {
+            font-weight: lighter;
+            background: rgba(242, 242, 242, 0.3);
+        }
+    </style>
+    <div id="iframes">
+
+    </div>
+    <script>
+    var ifrNames = {};
+    function addIframe(name, url, id, params) {
+        var iframeScrolling = params['iframeScrolling'] || 'yes';
+        var iframeZoom = params['iframeZoom'] || null;
+        var iframeTop = params['iframeTop'] || null;
+        var iframeHeight = params['iframeHeight'] || null;
+        var iframeLeft = params['iframeLeft'] || null;
+        var iframeWidth = params['iframeWidth'] || null;
+        console.log("addIframe", {name: name, url: url, id: id, params: params});
+
+        ifrNames[name] = id;
+        var el = document.createElement('iframe');
+        el.src = url;
+        el.id = 'iframe-' + id;
+        el.setAttribute('data-name', name);
+        el.setAttribute('allowtransparency', 'true');
+        el.setAttribute('scrolling', iframeScrolling);
+        if (!!iframeZoom) {
+            el.style.zoom = iframeZoom;
+        }
+        el.style.position = 'absolute';
+        if (iframeTop) el.style.top = iframeTop.replace('pct', '%');
+        else el.style.top = '0px';
+        if (iframeHeight) el.style.height = iframeHeight.replace('pct', '%');
+        else el.style.height = '100%';
+        if (iframeLeft) el.style.left = iframeLeft.replace('pct', '%');
+        else el.style.left = '0px';
+        if (iframeWidth) el.style.width = iframeWidth.replace('pct', '%');
+        else el.style.width = '100%';
+        
+        if (url.indexOf('homeassistant') != -1) el.setAttribute('name', 'ha-main-window');
+        document.querySelector('#iframes').appendChild(el);
+    }
+    window.onload = function() {
+        var params = Array.from(new URL(location.href).searchParams);
+        var iframeScrollings = {};
+        var iframeZooms = {};
+        var iframeTops = {};
+        var iframeHeights = {};
+        var iframeLefts = {};
+        var iframeWidths = {};
+        var first = -1;
+        for (var i=0; i<params.length; i++) {
+            var p = params[i];
+            var name = p[0];
+            var url = p[1];
+
+            var baseName = name;
+            var innerName = name;
+            if (name.indexOf("[") != -1 && name.indexOf("]") != -1) {
+                baseName = name.split("[")[0];
+                innerName = name.split("[")[1].split("]")[0];
+            }
+
+            console.log("name", name, "baseName", baseName, "innerName", innerName);
+
+            if (name == "zoom") {
+                document.body.style.zoom = url;
+            } else if (baseName == "zoom") {
+                iframeZooms[baseName] = url;
+            } else if (name == "background") {
+                var e = document.createElement('style');
+                e.innerHTML = '#iframes > iframe { background: ' + url + ' }';
+                document.body.appendChild(e);
+            } else if (name == "scrolling") {
+                defaultIframeScrolling = url;
+            } else if (baseName == "scrolling") {
+                iframeScrollings[innerName] = url;
+            } else if (baseName == "top") {
+                iframeTops[innerName] = url;
+            } else if (baseName == "height") {
+                iframeHeights[innerName] = url;
+            } else if (baseName == "left") {
+                iframeLefts[innerName] = url;
+            } else if (baseName == "width") {
+                iframeWidths[innerName] = url;
+            } else {
+                if (first == -1) first = i+1;
+                addIframe(name, url, i+1, {
+                    iframeScrolling: iframeScrollings[name],
+                    iframeZoom: iframeZooms[name],
+                    iframeTop: iframeTops[name],
+                    iframeHeight: iframeHeights[name],
+                    iframeLeft: iframeLefts[name],
+                    iframeWidth: iframeWidths[name]
+                });
+            }
+        }
+    }
+    function reloadIfr(id) {
+        var ifr = document.querySelector('#iframe-'+id);
+        var old = ifr.src;
+        ifr.src = 'about:blank';
+        setTimeout(function() { ifr.src = old; }, 10);
+    }
+
+    function handleMessage(event) {
+        if (!event.origin.endsWith('.wogloms.com')) return;
+        if (event.data.reloadTab) {
+            var id = ifrNames[event.data.reloadTab];
+            if (id) {
+                reloadIfr(id);
+            } else {
+                reloadIfr(event.data.reloadTab);
+            }
+        }
+        if (event.data.reloadPage) {
+            location.reload();
+        }
+    }
+
+    window.addEventListener('message', function(event) {
+        console.log('onMessage', event);
+        handleMessage(event);
+    });
+
+    </script>
+    </body>
+    </html>
+    
